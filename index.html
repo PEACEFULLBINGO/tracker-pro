@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>StudyFlow Orbit – Cloud Synced</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js" defer></script>
+  <style>
+    :root,[data-theme="light"] {
+      --text-xs: clamp(0.75rem, 0.7rem + 0.25vw, 0.875rem);
+      --text-sm: clamp(0.875rem, 0.8rem + 0.35vw, 1rem);
+      --text-base: clamp(1rem, 0.95rem + 0.25vw, 1.125rem);
+      --text-lg: clamp(1.125rem, 1rem + 0.75vw, 1.5rem);
+      --text-xl: clamp(1.5rem, 1.2rem + 1.25vw, 2rem);
+      --space-1: .25rem; --space-2: .5rem; --space-3: .75rem; --space-4: 1rem; --space-5: 1.25rem; --space-6: 1.5rem; --space-8: 2rem; --space-10: 2.5rem; --space-12: 3rem;
+      --color-bg: #f5f7fb; --color-surface: #ffffff; --color-surface-2: #f1f5ff; --color-surface-offset: #e7ecfb; --color-border: rgba(30,41,59,.12); --color-divider: rgba(30,41,59,.08);
+      --color-text: #172033; --color-text-muted: #5c6681; --color-text-faint: #8e97b2; --color-text-inverse: #f8fbff;
+      --color-primary: #4f46e5; --color-primary-hover: #4338ca; --color-success: #0f9d7a; --color-warning: #d97706; --color-danger: #dc2626; --color-blue: #2563eb; --color-purple: #8b5cf6; --color-gold: #eab308;
+      --radius-sm: .5rem; --radius-md: .9rem; --radius-lg: 1.2rem; --radius-xl: 1.5rem; --radius-full: 9999px;
+      --shadow-sm: 0 8px 24px rgba(79,70,229,.08); --shadow-md: 0 20px 40px rgba(15,23,42,.12); --shadow-lg: 0 30px 80px rgba(79,70,229,.18);
+      --transition-interactive: 180ms cubic-bezier(.16,1,.3,1);
+      --font-display: 'Outfit', system-ui, sans-serif; --font-body: 'Plus Jakarta Sans', system-ui, sans-serif;
+      --hero: radial-gradient(circle at top right, rgba(96,165,250,.25), transparent 30%), radial-gradient(circle at left bottom, rgba(139,92,246,.22), transparent 28%), linear-gradient(135deg, #ffffff 0%, #eef3ff 50%, #eef9ff 100%);
+    }
+    [data-theme="dark"] {
+      --color-bg: #0b1020; --color-surface: #11172b; --color-surface-2: #151d36; --color-surface-offset: #1c2645; --color-border: rgba(203,213,225,.12); --color-divider: rgba(203,213,225,.08);
+      --color-text: #edf3ff; --color-text-muted: #a8b4d1; --color-text-faint: #7f8aa8; --color-text-inverse: #09111f;
+      --color-primary: #7c82ff; --color-primary-hover: #98a0ff; --color-success: #34d399; --color-warning: #f59e0b; --color-danger: #f87171; --color-blue: #60a5fa; --color-purple: #a78bfa; --color-gold: #facc15;
+      --shadow-sm: 0 8px 24px rgba(10,14,30,.35); --shadow-md: 0 20px 40px rgba(0,0,0,.34); --shadow-lg: 0 30px 80px rgba(2,6,23,.46);
+      --hero: radial-gradient(circle at top right, rgba(96,165,250,.2), transparent 30%), radial-gradient(circle at left bottom, rgba(167,139,250,.16), transparent 28%), linear-gradient(135deg, #11182f 0%, #0f1731 50%, #12203a 100%);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; }
+    body {
+      font-family: var(--font-body); font-size: var(--text-base); color: var(--color-text); background: var(--color-bg);
+      line-height: 1.5; -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility;
+    }
+    button, input, textarea, select { font: inherit; color: inherit; }
+    button { border: none; cursor: pointer; }
+    a { color: inherit; text-decoration: none; }
+    :focus-visible { outline: 2px solid var(--color-primary); outline-offset: 2px; border-radius: 6px; }
+    .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); }
+    .shell { display: grid; grid-template-columns: 290px 1fr; grid-template-rows: 100dvh; height: 100dvh; }
+    .sidebar { background: color-mix(in srgb, var(--color-surface) 88%, transparent); backdrop-filter: blur(14px); border-right: 1px solid var(--color-divider); padding: var(--space-6); overflow-y: auto; display: flex; flex-direction: column; }
+    .brand { display: flex; align-items: center; gap: var(--space-3); margin-bottom: var(--space-8); }
+    .logo { width: 44px; height: 44px; padding: 10px; border-radius: 14px; background: linear-gradient(135deg, var(--color-primary), var(--color-blue)); box-shadow: var(--shadow-sm); flex-shrink:0; }
+    .brand h1 { font-family: var(--font-display); font-size: var(--text-lg); }
+    .brand p { font-size: var(--text-xs); color: var(--color-text-muted); }
+    .nav-group { display: grid; gap: var(--space-2); margin-bottom: var(--space-6); }
+    .nav-label { font-size: var(--text-xs); text-transform: uppercase; letter-spacing: .12em; color: var(--color-text-faint); margin-bottom: var(--space-2); }
+    .nav-btn, .quick-card, .chip, .btn, .task-item, .feature-tile, .toggle, .mini-action, .day-tab, .mood-btn, .note-card, .topic-row { transition: transform var(--transition-interactive), background var(--transition-interactive), border-color var(--transition-interactive), box-shadow var(--transition-interactive); }
+    .nav-btn { display: flex; align-items: center; gap: var(--space-3); width: 100%; padding: .95rem 1rem; border-radius: 16px; background: transparent; color: var(--color-text-muted); border: 1px solid transparent; text-align: left; }
+    .nav-btn:hover, .nav-btn.active { background: var(--color-surface-2); color: var(--color-text); border-color: var(--color-border); transform: translateX(2px); }
+    .sidebar-bottom { margin-top: auto; }
+    .quick-card { background: var(--hero); border-radius: 24px; padding: var(--space-5); border: 1px solid var(--color-border); box-shadow: var(--shadow-md); margin-bottom: var(--space-4); }
+    .quick-card h3 { font-size: var(--text-base); margin-bottom: .45rem; }
+    .quick-card p { color: var(--color-text-muted); font-size: var(--text-sm); margin-bottom: var(--space-4); }
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: .5rem; min-height: 44px; padding: .82rem 1rem; border-radius: 16px; font-weight: 600; white-space: nowrap; }
+    .btn-primary { background: linear-gradient(135deg, var(--color-primary), color-mix(in srgb, var(--color-primary) 74%, white)); color: white; box-shadow: var(--shadow-sm); }
+    .btn-primary:hover { transform: translateY(-1px); }
+    .btn-secondary { background: var(--color-surface-2); color: var(--color-text); border: 1px solid var(--color-border); }
+    .btn-secondary:hover { border-color: var(--color-primary); }
+    .btn-ghost { background: transparent; color: var(--color-text-muted); }
+    .btn-danger { background: color-mix(in srgb, var(--color-danger) 14%, var(--color-surface)); color: var(--color-danger); border: 1px solid color-mix(in srgb, var(--color-danger) 30%, transparent); }
+    .btn-sm { min-height: 36px; padding: .5rem .85rem; font-size: var(--text-sm); border-radius: 12px; }
+    .btn:disabled { opacity: .55; cursor: not-allowed; transform:none !important; }
+    .main { overflow-y: auto; padding: var(--space-6); }
+    .topbar { display: flex; justify-content: space-between; align-items: center; gap: var(--space-4); margin-bottom: var(--space-6); }
+    .topbar-title { display:flex; align-items:flex-start; gap:.75rem; }
+    .topbar-title h2 { font-family: var(--font-display); font-size: var(--text-xl); letter-spacing: -.03em; }
+    .topbar-title p { color: var(--color-text-muted); margin-top: .35rem; }
+    .topbar-actions { display: flex; align-items: center; gap: .75rem; flex-wrap: wrap; }
+    .toggle, .mini-action { min-height: 44px; padding: .75rem 1rem; border-radius: 14px; background: var(--color-surface); border: 1px solid var(--color-border); }
+    .sync-pill { display: inline-flex; gap:.6rem; align-items: center; min-height:44px; padding:.7rem 1.1rem; border-radius:14px; background: color-mix(in srgb, var(--color-success) 12%, var(--color-surface)); border:1px solid color-mix(in srgb, var(--color-success) 30%, transparent); font-size: var(--text-sm); }
+    .dot { width:8px; height:8px; border-radius:50%; background: var(--color-success); box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-success) 20%, transparent); flex-shrink:0; }
+    .dot.busy { background: var(--color-warning); box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-warning) 20%, transparent); }
+    .page { display: none; }
+    .page.active { display: block; animation: fadein .25s ease; }
+    @keyframes fadein { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+    .hero-grid { display: grid; grid-template-columns: 1.2fr .8fr; gap: var(--space-6); margin-bottom: var(--space-6); }
+    .hero-card, .panel, .chart-card, .glass-card { background: color-mix(in srgb, var(--color-surface) 92%, transparent); border: 1px solid var(--color-border); border-radius: 28px; box-shadow: var(--shadow-md); }
+    .hero-card { padding: clamp(1.5rem, 2vw, 2.3rem); background: var(--hero); position: relative; overflow: hidden; }
+    .hero-card::after { content: ''; position: absolute; inset: auto -40px -40px auto; width: 180px; height: 180px; border-radius: 50%; background: radial-gradient(circle, rgba(255,255,255,.35), transparent 62%); pointer-events:none; }
+    .eyebrow { font-size: var(--text-xs); text-transform: uppercase; letter-spacing: .14em; color: var(--color-primary); margin-bottom: .8rem; }
+    .hero-card h3 { font-family: var(--font-display); font-size: clamp(1.8rem, 2.2vw, 2.5rem); line-height: 1.08; max-width: 16ch; margin-bottom: 1rem; }
+    .hero-card p { color: var(--color-text-muted); max-width: 58ch; margin-bottom: var(--space-5); }
+    .streak-row, .stat-grid, .charts-grid, .timeline-grid, .feature-grid { display: grid; gap: var(--space-4); }
+    .streak-row { grid-template-columns: repeat(3, 1fr); }
+    .stat-bubble { background: rgba(255,255,255,.12); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,.16); padding: 1rem; border-radius: 20px; }
+    .stat-bubble small, .metric-card small { display:block; color: var(--color-text-muted); font-size: var(--text-xs); margin-bottom: .3rem; }
+    .stat-bubble strong, .metric-card strong { font-size: 1.35rem; font-variant-numeric: tabular-nums; }
+    .panel { padding: var(--space-5); }
+    .panel-header { display:flex; align-items:center; justify-content:space-between; gap:var(--space-3); margin-bottom: var(--space-4); flex-wrap: wrap; }
+    .panel-header h3 { font-size: var(--text-lg); }
+    .chips { display:flex; flex-wrap:wrap; gap:.6rem; }
+    .chip { padding:.55rem .8rem; border-radius:999px; background: var(--color-surface-2); color: var(--color-text-muted); border:1px solid var(--color-border); font-size: var(--text-sm); }
+    .chip.active { background: color-mix(in srgb, var(--color-primary) 16%, var(--color-surface)); color: var(--color-text); }
+    .timeline-grid { grid-template-columns: 1.2fr .8fr; margin-bottom: var(--space-6); }
+    .task-list { display:grid; gap: .85rem; }
+    .task-item { background: var(--color-surface-2); border: 1px solid var(--color-border); border-radius: 20px; padding: 1rem; display:flex; align-items:flex-start; justify-content:space-between; gap:1rem; }
+    .task-item:hover { transform: translateY(-2px); }
+    .task-left { display:flex; gap:.9rem; align-items:flex-start; min-width:0; }
+    .check { width: 22px; height: 22px; border-radius: 50%; margin-top: .15rem; border: 2px solid var(--color-primary); display:grid; place-items:center; background: transparent; flex-shrink:0; color:#fff; font-size:.7rem; }
+    .check.done { background: var(--color-primary); }
+    .task-item h4 { font-size: var(--text-base); margin-bottom:.2rem; }
+    .task-item p, .task-meta { color: var(--color-text-muted); font-size: var(--text-sm); }
+    .task-meta { display:flex; gap:.7rem; flex-wrap:wrap; margin-top: .45rem; }
+    .task-actions { display:flex; gap:.4rem; align-items:flex-start; flex-shrink:0; }
+    .icon-btn { background:transparent; border:none; color:var(--color-text-muted); padding:.45rem; border-radius:10px; line-height:1; font-size:1rem; }
+    .icon-btn:hover { background: var(--color-surface-offset); color: var(--color-text); }
+    .badge { display:inline-flex; align-items:center; gap:.35rem; padding:.35rem .65rem; border-radius:999px; font-size: var(--text-xs); background: rgba(52,211,153,.12); color: var(--color-success); }
+    .badge.muted { background: var(--color-surface-offset); color: var(--color-text-muted); }
+    .metric-grid { display:grid; grid-template-columns: repeat(3,1fr); gap: var(--space-4); margin-bottom: var(--space-6); }
+    .metric-card { padding: 1.1rem; border-radius: 22px; background: var(--color-surface); border:1px solid var(--color-border); box-shadow: var(--shadow-sm); }
+    .charts-grid { grid-template-columns: repeat(2, minmax(0,1fr)); }
+    .chart-card { padding: var(--space-5); min-height: 320px; }
+    .chart-wrap { position: relative; height: 240px; }
+    .chart-wrap.tall { height: 280px; }
+    .feature-grid { grid-template-columns: repeat(3, 1fr); margin-top: var(--space-6); }
+    .feature-tile { padding: 1.1rem; border-radius: 22px; background: var(--color-surface); border:1px solid var(--color-border); }
+    .feature-tile h4 { margin-bottom: .45rem; }
+    .feature-tile p { color: var(--color-text-muted); font-size: var(--text-sm); }
+    .assistant-box { display:grid; gap: .9rem; }
+    .input-stack { display:grid; gap: .8rem; }
+    .field, textarea, select { width: 100%; border:1px solid var(--color-border); background: var(--color-surface-2); border-radius: 16px; padding: .95rem 1rem; }
+    textarea { min-height: 100px; resize: vertical; font-family: inherit; }
+    .assistant-actions { display:flex; gap:.7rem; flex-wrap:wrap; }
+    .brainstorm { background: var(--color-surface-2); border:1px solid var(--color-border); border-radius: 18px; padding: 1rem; color: var(--color-text-muted); font-size: var(--text-sm); }
+    .footer-note { margin-top: var(--space-6); color: var(--color-text-faint); font-size: var(--text-xs); }
+    .spark { color: var(--color-gold); }
+    .hidden { display:none !important; }
+    .mobile-toggle { display:none; }
+
+    /* New: day tabs (Timetable) */
+    .day-tabs { display:flex; gap:.5rem; flex-wrap:wrap; margin-bottom: var(--space-5); }
+    .day-tab { padding:.6rem 1.1rem; border-radius:999px; background:var(--color-surface-2); border:1px solid var(--color-border); color: var(--color-text-muted); font-size: var(--text-sm); font-weight:600; }
+    .day-tab.active { background: var(--color-primary); color:#fff; border-color: var(--color-primary); }
+    .day-tab .count { opacity:.7; font-weight:400; margin-left:.3rem; }
+
+    /* Forms */
+    .form-card { background: var(--color-surface-2); border:1px solid var(--color-border); border-radius:20px; padding:1.1rem; margin-bottom: var(--space-4); }
+    .form-grid { display:grid; gap:.7rem; grid-template-columns: repeat(2,1fr); }
+    .form-grid .full { grid-column: 1/-1; }
+    .form-actions { display:flex; gap:.6rem; margin-top:.8rem; justify-content:flex-end; }
+    label.field-label { display:block; font-size: var(--text-xs); color: var(--color-text-muted); margin-bottom:.35rem; }
+
+    /* Empty state */
+    .empty-state { text-align:center; color:var(--color-text-faint); padding: 2.2rem 1rem; }
+    .empty-state .glyph { font-size:1.8rem; margin-bottom:.5rem; }
+
+    /* Notes */
+    .note-grid { display:grid; gap:1rem; grid-template-columns: repeat(2,1fr); }
+    .note-card { background: var(--color-surface-2); border:1px solid var(--color-border); border-radius:18px; padding:1.1rem; display:flex; flex-direction:column; gap:.5rem; }
+    .note-card h4 { font-size: var(--text-base); }
+    .note-card p { color: var(--color-text-muted); font-size: var(--text-sm); flex:1; white-space:pre-wrap; }
+    .note-tag { display:inline-flex; padding:.25rem .6rem; border-radius:999px; background: var(--color-surface-offset); font-size: var(--text-xs); color: var(--color-text-muted); width:fit-content; }
+    .note-foot { display:flex; justify-content:space-between; align-items:center; margin-top:.4rem; }
+    .note-foot small { color: var(--color-text-faint); font-size: var(--text-xs); }
+
+    /* Exam Sprint */
+    .countdown-row { display:flex; align-items:center; gap: var(--space-6); flex-wrap:wrap; }
+    .countdown-num { font-family: var(--font-display); font-size: 3.2rem; line-height:1; }
+    .progress-bar { height:10px; border-radius:999px; background:var(--color-surface-offset); overflow:hidden; margin-top:.6rem; }
+    .progress-fill { height:100%; background:linear-gradient(90deg,var(--color-primary),var(--color-blue)); border-radius:999px; transition:width .35s ease; }
+    .topic-row { display:flex; align-items:center; justify-content:space-between; gap:.8rem; padding:.8rem 1rem; border-radius:14px; background:var(--color-surface-2); border:1px solid var(--color-border); }
+    .topic-row.done { opacity:.6; }
+    .topic-left { display:flex; align-items:center; gap:.7rem; min-width:0; }
+    .topic-left span.title { word-break: break-word; }
+    .topic-row.done .title { text-decoration: line-through; }
+
+    /* Focus Room */
+    .timer-shell { text-align:center; padding: var(--space-4) 0; }
+    .timer-mode { display:inline-flex; gap:.4rem; background:var(--color-surface-2); border-radius:999px; padding:.3rem; margin-bottom: var(--space-5); }
+    .timer-mode button { padding:.5rem 1rem; border-radius:999px; font-size: var(--text-sm); background:transparent; color: var(--color-text-muted); }
+    .timer-mode button.active { background: var(--color-primary); color:#fff; }
+    .timer-display { font-family:var(--font-display); font-size: clamp(3rem,8vw,5rem); margin: .5rem 0 1.5rem; font-variant-numeric:tabular-nums; letter-spacing:-.02em; }
+    .timer-controls { display:flex; gap:.75rem; justify-content:center; margin-bottom: var(--space-5); }
+    .focus-stats { display:grid; grid-template-columns: repeat(3,1fr); gap: var(--space-3); }
+
+    /* Night Review */
+    .mood-row { display:flex; gap:.6rem; flex-wrap:wrap; }
+    .mood-btn { font-size:1.5rem; padding:.6rem .9rem; border-radius:14px; background:var(--color-surface-2); border:1px solid var(--color-border); }
+    .mood-btn.active { background: color-mix(in srgb, var(--color-primary) 20%, var(--color-surface)); border-color: var(--color-primary); }
+    .review-entry { background: var(--color-surface-2); border:1px solid var(--color-border); border-radius:16px; padding:.9rem 1rem; }
+    .review-entry .rev-head { display:flex; justify-content:space-between; font-size: var(--text-sm); color: var(--color-text-muted); margin-bottom:.4rem; }
+
+    /* AI Studio chat */
+    .chat-shell { display:flex; flex-direction:column; height: 540px; }
+    .chat-thread { flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:.75rem; padding: .3rem .2rem 1rem; }
+    .chat-msg { padding:.8rem 1.05rem; border-radius:18px; max-width:80%; font-size: var(--text-sm); line-height:1.5; }
+    .chat-msg.user { background: var(--color-primary); color:#fff; margin-left:auto; border-bottom-right-radius:6px; }
+    .chat-msg.ai { background: var(--color-surface-2); border:1px solid var(--color-border); border-bottom-left-radius:6px; }
+    .chat-msg.error { background: color-mix(in srgb, var(--color-danger) 12%, var(--color-surface)); border:1px solid color-mix(in srgb, var(--color-danger) 30%, transparent); color: var(--color-danger); }
+    .chat-input-row { display:flex; gap:.6rem; align-items:flex-end; border-top:1px solid var(--color-divider); padding-top: var(--space-4); }
+    .chat-input-row textarea { min-height:48px; max-height:120px; }
+    .typing-dots span { display:inline-block; width:6px; height:6px; border-radius:50%; background: var(--color-text-faint); margin-right:3px; animation: blink 1.2s infinite; }
+    .typing-dots span:nth-child(2){ animation-delay:.2s;} .typing-dots span:nth-child(3){ animation-delay:.4s;}
+    @keyframes blink { 0%,80%,100%{opacity:.25;} 40%{opacity:1;} }
+
+    /* Heatmap */
+    .heatmap { display:grid; grid-template-columns: repeat(14, 1fr); gap:5px; }
+    .heatmap .cell { aspect-ratio:1; border-radius:5px; background: var(--color-surface-offset); position:relative; }
+    .heatmap .cell[data-tip]:hover::after { content: attr(data-tip); position:absolute; bottom:120%; left:50%; transform:translateX(-50%); background: var(--color-text); color: var(--color-bg); font-size:10px; padding:.25rem .5rem; border-radius:6px; white-space:nowrap; z-index:5; }
+    .heatmap-legend { display:flex; align-items:center; gap:.4rem; font-size: var(--text-xs); color: var(--color-text-faint); margin-top:.7rem; }
+    .heatmap-legend .sw { width:12px; height:12px; border-radius:3px; }
+
+    /* Toast */
+    .toast { position:fixed; bottom:1.5rem; right:1.5rem; background: var(--color-surface); border:1px solid var(--color-border); box-shadow: var(--shadow-lg); padding:.9rem 1.2rem; border-radius:14px; font-size: var(--text-sm); z-index:200; transform: translateY(16px); opacity:0; transition: all .25s ease; pointer-events:none; display:flex; align-items:center; gap:.6rem; max-width: 320px; }
+    .toast.show { transform: translateY(0); opacity:1; }
+
+    .modal-overlay { position:fixed; inset:0; background: rgba(5,8,18,.55); display:flex; align-items:center; justify-content:center; z-index:150; padding:1rem; }
+    .modal-box { background: var(--color-surface); border:1px solid var(--color-border); border-radius:24px; padding: var(--space-6); max-width:420px; width:100%; box-shadow: var(--shadow-lg); }
+    .modal-box h3 { font-family: var(--font-display); margin-bottom:.5rem; }
+    .modal-box p { color: var(--color-text-muted); font-size: var(--text-sm); margin-bottom: var(--space-4); }
+
+    @media (max-width: 1100px) {
+      .shell { grid-template-columns: 90px 1fr; }
+      .sidebar .brand-copy, .sidebar .nav-label, .sidebar .nav-btn span:last-child, .quick-card p, .quick-card h3, .sidebar-bottom .btn span:last-child { display:none; }
+      .quick-card { padding: 1rem; }
+      .hero-grid, .timeline-grid, .charts-grid, .feature-grid, .metric-grid, .note-grid, .form-grid, .focus-stats { grid-template-columns: 1fr; }
+      .streak-row { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 760px) {
+      html, body { overflow: auto; }
+      .shell { display:block; height:auto; }
+      .sidebar { position: fixed; inset: 0 auto 0 0; width: 82vw; max-width: 300px; transform: translateX(-110%); z-index: 40; transition: transform var(--transition-interactive); height:100dvh; }
+      .sidebar.open { transform: translateX(0); }
+      .main { padding: 1rem; overflow: visible; }
+      .mobile-toggle { display:inline-flex; }
+      .topbar { align-items:flex-start; flex-direction:column; }
+      .topbar-actions { width:100%; }
+      .topbar-actions > * { flex:1 1 auto; }
+      .heatmap { grid-template-columns: repeat(10,1fr); }
+      .countdown-row { gap: var(--space-4); }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <aside class="sidebar" id="sidebar">
+      <div class="brand">
+        <svg class="logo" viewBox="0 0 48 48" fill="none" aria-label="StudyFlow Orbit logo">
+          <path d="M24 7C16.4 7 10 13.4 10 21c0 4.3 2 8.2 5.2 10.8M24 41c7.7 0 14-6.3 14-14 0-4.3-2-8.2-5.2-10.8" stroke="white" stroke-width="3.2" stroke-linecap="round"/>
+          <circle cx="24" cy="24" r="5.8" fill="white"/>
+          <circle cx="35.4" cy="16.4" r="3.2" fill="white" opacity=".7"/>
+        </svg>
+        <div class="brand-copy">
+          <h1>StudyFlow Orbit</h1>
+          <p>Plan. Focus. Grow daily.</p>
+        </div>
+      </div>
+
+      <div class="nav-group">
+        <div class="nav-label">Navigate</div>
+        <button class="nav-btn active" data-page="dashboard"><span>🏠</span><span>Dashboard</span></button>
+        <button class="nav-btn" data-page="timetable"><span>🗓️</span><span>Timetable</span></button>
+        <button class="nav-btn" data-page="charts"><span>📈</span><span>Growth Charts</span></button>
+        <button class="nav-btn" data-page="ai"><span>🤖</span><span>AI Studio</span></button>
+        <button class="nav-btn" data-page="notes"><span>📝</span><span>Notes Hub</span></button>
+      </div>
+
+      <div class="nav-group">
+        <div class="nav-label">Quick tools</div>
+        <button class="nav-btn" data-page="exam"><span>🎯</span><span>Exam Sprint</span></button>
+        <button class="nav-btn" data-page="focus"><span>⚡</span><span>Focus Room</span></button>
+        <button class="nav-btn" data-page="night"><span>🌙</span><span>Night Review</span></button>
+      </div>
+
+      <div class="sidebar-bottom">
+        <div class="quick-card">
+          <h3>Daily magnet</h3>
+          <p>Earn sparks for streaks, clean study blocks, and completed workouts.</p>
+          <button class="btn btn-primary" id="claimSpark" style="width:100%">Claim today's spark</button>
+        </div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="topbar">
+        <div class="topbar-title">
+          <button class="toggle mobile-toggle" id="menuBtn">☰</button>
+          <div>
+            <h2 id="topbarTitle">Your smart daily cockpit</h2>
+            <p id="topbarSubtitle">A timetable, progress tracking, charts, and a real AI study coach, saved to your account.</p>
+          </div>
+        </div>
+        <div class="topbar-actions">
+          <button class="toggle" data-theme-toggle aria-label="Switch theme">🌙 Theme</button>
+          <button class="sync-pill" id="syncStatus" title="Your data saves automatically to your Claude account"><span class="dot" id="syncDot"></span><span id="syncLabel">Cloud synced</span></button>
+          <button class="mini-action" id="profileBtn">👤 <span id="profileLabel">Set up profile</span></button>
+          <button class="mini-action" id="exportBtn">📤 Export</button>
+        </div>
+      </div>
+
+      <!-- DASHBOARD -->
+      <section class="page active" id="page-dashboard">
+        <section class="hero-grid">
+          <div class="hero-card">
+            <div class="eyebrow">Student mode</div>
+            <h3 id="heroHeadline">Track every day without making it feel boring.</h3>
+            <p>StudyFlow Orbit mixes timetable planning, habit tracking, exam prep hours, workout balance, and a real AI assistant inside one smooth dashboard — all saved to the cloud under your account.</p>
+            <div class="streak-row">
+              <div class="stat-bubble"><small>Study streak</small><strong id="streakCount">0 days</strong></div>
+              <div class="stat-bubble"><small>Today's study</small><strong id="todayHours">0 hrs</strong></div>
+              <div class="stat-bubble"><small>Sparks earned</small><strong id="sparkCount">0</strong></div>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-header">
+              <h3>Today's rhythm</h3>
+              <span class="badge" id="todayBadge">—</span>
+            </div>
+            <div class="chips" id="todayChips"></div>
+            <div class="footer-note">Saved automatically to your Claude account — no separate login needed. Use "Export" to send a copy of your data anywhere.</div>
+          </div>
+        </section>
+
+        <section class="timeline-grid">
+          <div class="panel">
+            <div class="panel-header">
+              <h3>Today's blocks</h3>
+              <button class="btn btn-secondary btn-sm" data-goto="timetable">Open full timetable →</button>
+            </div>
+            <div class="task-list" id="dashTaskList"></div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-header">
+              <h3>AI assistant</h3>
+              <span class="badge">Live · Claude</span>
+            </div>
+            <div class="assistant-box">
+              <div class="input-stack">
+                <label>
+                  <span class="sr-only">Ask AI</span>
+                  <textarea id="assistantPrompt" placeholder="Example: Move math revision to 7:30 PM and add a 20 min break after school."></textarea>
+                </label>
+                <div class="assistant-actions">
+                  <button class="btn btn-primary btn-sm" id="applyAi">Apply to today's plan</button>
+                  <button class="btn btn-secondary btn-sm" id="brainstormBtn">Quick tip</button>
+                  <button class="btn btn-secondary btn-sm" data-goto="ai">Open full chat →</button>
+                </div>
+              </div>
+              <div class="brainstorm" id="assistantResponse">Ask for a real schedule change, like "add a 15 min break before science," and Claude will edit today's blocks directly.</div>
+            </div>
+          </div>
+        </section>
+
+        <section class="metric-grid">
+          <div class="metric-card"><small>Completion rate</small><strong id="completionRate">0%</strong></div>
+          <div class="metric-card"><small>7-day focus score</small><strong id="focusScore">0 / 100</strong></div>
+          <div class="metric-card"><small>Best study zone</small><strong id="bestZone">Not enough data yet</strong></div>
+        </section>
+
+        <section class="charts-grid">
+          <div class="chart-card">
+            <div class="panel-header"><h3>Study hours — last 7 days</h3><span class="chip active">Line chart</span></div>
+            <div class="chart-wrap"><canvas id="lineChart"></canvas></div>
+          </div>
+          <div class="chart-card">
+            <div class="panel-header"><h3>Subject balance — last 7 days</h3><span class="chip active">Doughnut</span></div>
+            <div class="chart-wrap"><canvas id="doughnutChart"></canvas></div>
+          </div>
+        </section>
+
+        <section class="feature-grid">
+          <div class="feature-tile">
+            <h4>Real cloud storage</h4>
+            <p>Every block, note, and review is saved to your Claude account through encrypted cloud storage — open this on another device and it's all there.</p>
+          </div>
+          <div class="feature-tile">
+            <h4>Real AI, not a script</h4>
+            <p>The assistant calls Claude directly. It reads your actual schedule and rewrites it — no canned keyword matching.</p>
+          </div>
+          <div class="feature-tile">
+            <h4>Built for daily use</h4>
+            <p>Sparks, streaks, a heatmap, and a focus timer give you small reasons to open the app again tomorrow.</p>
+          </div>
+        </section>
+
+        <p class="footer-note">Google sign-in and a managed backend (Firebase/Supabase) aren't wired up here — but your data already persists privately per account through cloud storage, and the AI assistant is fully live.</p>
+      </section>
+
+      <!-- TIMETABLE -->
+      <section class="page" id="page-timetable">
+        <div class="topbar-title" style="margin-bottom:1.2rem;">
+          <div><h2>Timetable planner</h2><p>Plan each day of the week. Changes save to the cloud instantly.</p></div>
+        </div>
+        <div class="day-tabs" id="dayTabs"></div>
+        <div class="panel">
+          <div class="panel-header">
+            <h3 id="dayTitle">Monday</h3>
+            <button class="btn btn-primary btn-sm" id="showAddTask">+ Add block</button>
+          </div>
+          <div class="form-card hidden" id="taskFormCard">
+            <div class="form-grid">
+              <div class="full"><label class="field-label">Title</label><input class="field" id="taskTitle" placeholder="e.g. Science revision"></div>
+              <div><label class="field-label">Start time</label><input class="field" id="taskStart" placeholder="6:00 PM"></div>
+              <div><label class="field-label">End time</label><input class="field" id="taskEnd" placeholder="7:15 PM"></div>
+              <div>
+                <label class="field-label">Category</label>
+                <select class="field" id="taskTag">
+                  <option>Study</option><option>School</option><option>Fitness</option><option>Notes</option><option>Rest</option>
+                </select>
+              </div>
+              <div>
+                <label class="field-label">Subject (if Study)</label>
+                <select class="field" id="taskSubject">
+                  <option>Math</option><option>Science</option><option>English</option><option>Coding</option><option>Revision</option><option>General</option>
+                </select>
+              </div>
+              <div class="full"><label class="field-label">Note</label><input class="field" id="taskNote" placeholder="Optional detail"></div>
+            </div>
+            <div class="form-actions">
+              <button class="btn btn-ghost btn-sm" id="cancelTask">Cancel</button>
+              <button class="btn btn-primary btn-sm" id="saveTask">Save block</button>
+            </div>
+          </div>
+          <div class="task-list" id="timetableTaskList"></div>
+        </div>
+      </section>
+
+      <!-- GROWTH CHARTS -->
+      <section class="page" id="page-charts">
+        <div class="topbar-title" style="margin-bottom:1.2rem;">
+          <div><h2>Growth charts</h2><p>Built from your real activity log — not sample data.</p></div>
+        </div>
+        <section class="charts-grid" style="margin-bottom: var(--space-6);">
+          <div class="chart-card">
+            <div class="panel-header"><h3>Study hours trend</h3><span class="chip active">Last 14 days</span></div>
+            <div class="chart-wrap tall"><canvas id="growthLineChart"></canvas></div>
+          </div>
+          <div class="chart-card">
+            <div class="panel-header"><h3>Subject balance</h3><span class="chip active">Last 14 days</span></div>
+            <div class="chart-wrap tall"><canvas id="growthDoughnutChart"></canvas></div>
+          </div>
+          <div class="chart-card">
+            <div class="panel-header"><h3>Daily completion</h3><span class="chip active">Last 7 days</span></div>
+            <div class="chart-wrap tall"><canvas id="growthBarChart"></canvas></div>
+          </div>
+          <div class="chart-card">
+            <div class="panel-header"><h3>Balance radar</h3><span class="chip active">Cross-feature</span></div>
+            <div class="chart-wrap tall"><canvas id="growthRadarChart"></canvas></div>
+          </div>
+        </section>
+        <div class="panel">
+          <div class="panel-header"><h3>Activity heatmap</h3><span class="chip active">Last 28 days</span></div>
+          <div class="heatmap" id="heatmap"></div>
+          <div class="heatmap-legend">
+            <span>Less</span>
+            <span class="sw" style="background:var(--color-surface-offset)"></span>
+            <span class="sw" style="background:color-mix(in srgb, var(--color-primary) 35%, var(--color-surface-offset))"></span>
+            <span class="sw" style="background:color-mix(in srgb, var(--color-primary) 65%, var(--color-surface-offset))"></span>
+            <span class="sw" style="background:var(--color-primary)"></span>
+            <span>More</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- AI STUDIO -->
+      <section class="page" id="page-ai">
+        <div class="topbar-title" style="margin-bottom:1.2rem;">
+          <div><h2>AI Studio</h2><p>Chat with Claude about study strategy, scheduling, or motivation. History saves to the cloud.</p></div>
+        </div>
+        <div class="panel">
+          <div class="chat-shell">
+            <div class="chat-thread" id="chatThread"></div>
+            <div class="chat-input-row">
+              <textarea class="field" id="chatInput" placeholder="Ask about a study technique, exam stress, or how to fix your schedule..."></textarea>
+              <button class="btn btn-primary" id="chatSend">Send</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- NOTES HUB -->
+      <section class="page" id="page-notes">
+        <div class="topbar-title" style="margin-bottom:1.2rem;">
+          <div><h2>Notes hub</h2><p>Quick notes and revision summaries, searchable and saved to the cloud.</p></div>
+        </div>
+        <div class="panel">
+          <div class="panel-header">
+            <h3>Your notes</h3>
+            <button class="btn btn-primary btn-sm" id="showAddNote">+ New note</button>
+          </div>
+          <input class="field" id="noteSearch" placeholder="Search notes by title or tag..." style="margin-bottom: var(--space-4);">
+          <div class="form-card hidden" id="noteFormCard">
+            <div class="form-grid">
+              <div class="full"><label class="field-label">Title</label><input class="field" id="noteTitle" placeholder="e.g. Newton's laws summary"></div>
+              <div><label class="field-label">Tag</label><input class="field" id="noteTag" placeholder="e.g. Science"></div>
+              <div class="full"><label class="field-label">Content</label><textarea class="field" id="noteBody" placeholder="Write your note..."></textarea></div>
+            </div>
+            <div class="form-actions">
+              <button class="btn btn-ghost btn-sm" id="cancelNote">Cancel</button>
+              <button class="btn btn-primary btn-sm" id="saveNote">Save note</button>
+            </div>
+          </div>
+          <div class="note-grid" id="noteGrid"></div>
+        </div>
+      </section>
+
+      <!-- EXAM SPRINT -->
+      <section class="page" id="page-exam">
+        <div class="topbar-title" style="margin-bottom:1.2rem;">
+          <div><h2>Exam sprint</h2><p>Set your exam date, track the countdown, and check off your syllabus.</p></div>
+        </div>
+        <div class="panel" style="margin-bottom: var(--space-6);">
+          <div class="form-grid" style="margin-bottom:1rem;">
+            <div><label class="field-label">Exam name</label><input class="field" id="examName" placeholder="e.g. Physics Final"></div>
+            <div><label class="field-label">Exam date</label><input class="field" id="examDate" type="date"></div>
+          </div>
+          <button class="btn btn-primary btn-sm" id="saveExam">Save exam</button>
+          <div class="countdown-row" style="margin-top:1.3rem;">
+            <div>
+              <div class="countdown-num" id="examCountdown">—</div>
+              <small style="color:var(--color-text-muted)">days remaining</small>
+            </div>
+            <div style="flex:1; min-width:200px;">
+              <div style="display:flex; justify-content:space-between; font-size:var(--text-sm); color:var(--color-text-muted);">
+                <span>Syllabus progress</span><span id="examProgressLabel">0%</span>
+              </div>
+              <div class="progress-bar"><div class="progress-fill" id="examProgressFill" style="width:0%"></div></div>
+            </div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-header">
+            <h3>Syllabus checklist</h3>
+            <button class="btn btn-secondary btn-sm" id="showAddTopic">+ Add topic</button>
+          </div>
+          <div class="form-card hidden" id="topicFormCard">
+            <div class="form-grid"><div class="full"><input class="field" id="topicInput" placeholder="e.g. Thermodynamics chapter 4"></div></div>
+            <div class="form-actions"><button class="btn btn-ghost btn-sm" id="cancelTopic">Cancel</button><button class="btn btn-primary btn-sm" id="saveTopic">Add</button></div>
+          </div>
+          <div id="topicList" style="display:grid; gap:.6rem;"></div>
+        </div>
+      </section>
+
+      <!-- FOCUS ROOM -->
+      <section class="page" id="page-focus">
+        <div class="topbar-title" style="margin-bottom:1.2rem;">
+          <div><h2>Focus room</h2><p>A Pomodoro-style timer. Completed sessions log automatically and earn sparks.</p></div>
+        </div>
+        <div class="panel" style="max-width:560px; margin: 0 auto var(--space-6);">
+          <div class="timer-shell">
+            <div class="timer-mode">
+              <button class="active" data-mode="focus" data-mins="25">Focus 25</button>
+              <button data-mode="focus" data-mins="50">Focus 50</button>
+              <button data-mode="break" data-mins="5">Break 5</button>
+            </div>
+            <div class="timer-display" id="timerDisplay">25:00</div>
+            <div class="timer-controls">
+              <button class="btn btn-primary" id="timerStart">Start</button>
+              <button class="btn btn-secondary" id="timerPause">Pause</button>
+              <button class="btn btn-ghost" id="timerReset">Reset</button>
+            </div>
+            <div class="focus-stats">
+              <div class="metric-card"><small>Today's focus</small><strong id="focusToday">0 min</strong></div>
+              <div class="metric-card"><small>Sessions today</small><strong id="focusSessions">0</strong></div>
+              <div class="metric-card"><small>All-time minutes</small><strong id="focusAllTime">0</strong></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- NIGHT REVIEW -->
+      <section class="page" id="page-night">
+        <div class="topbar-title" style="margin-bottom:1.2rem;">
+          <div><h2>Night review</h2><p>A two-minute end-of-day reflection. Saved to your history below.</p></div>
+        </div>
+        <div class="panel" style="margin-bottom: var(--space-6);">
+          <label class="field-label">How did today feel?</label>
+          <div class="mood-row" id="moodRow" style="margin-bottom:1rem;">
+            <button class="mood-btn" data-mood="rough">😞</button>
+            <button class="mood-btn" data-mood="okay">😐</button>
+            <button class="mood-btn" data-mood="good">🙂</button>
+            <button class="mood-btn" data-mood="great">😄</button>
+          </div>
+          <div class="form-grid">
+            <div class="full"><label class="field-label">Wins today</label><textarea class="field" id="reviewWins" placeholder="What went well?"></textarea></div>
+            <div class="full"><label class="field-label">Challenges</label><textarea class="field" id="reviewChallenges" placeholder="What was hard?"></textarea></div>
+            <div class="full"><label class="field-label">Tomorrow's plan</label><textarea class="field" id="reviewPlan" placeholder="One thing to focus on tomorrow"></textarea></div>
+          </div>
+          <div class="form-actions"><button class="btn btn-primary" id="saveReview">Save tonight's review</button></div>
+        </div>
+        <div class="panel">
+          <h3 style="margin-bottom:1rem;">Recent reviews</h3>
+          <div id="reviewList" style="display:grid; gap:.7rem;"></div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="app.js" defer></script>
+</body>
+</html>
